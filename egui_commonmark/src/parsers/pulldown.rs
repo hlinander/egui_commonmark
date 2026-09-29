@@ -1382,8 +1382,16 @@ impl CommonMarkViewerInternal {
         max_width: f32,
     ) {
         if let Some(block) = self.code_block.take() {
-            block.end(ui, cache, options, max_width);
-            self.line.try_insert_end(ui);
+            // List items suppress paragraph newlines, but code remains a block.
+            if self.list.is_inside_a_list() && ui.cursor().left() > ui.max_rect().left() {
+                ui.end_row();
+            }
+            block.end(ui, cache, options, max_width.min(ui.available_width()));
+            if self.list.is_inside_a_list() {
+                ui.end_row();
+            } else {
+                self.line.try_insert_end(ui);
+            }
         }
     }
 }
