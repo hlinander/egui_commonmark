@@ -76,6 +76,7 @@ use egui::{self, Id};
 
 mod parsers;
 
+pub use egui_commonmark_backend::MathDelimiters;
 pub use egui_commonmark_backend::RenderHtmlFn;
 pub use egui_commonmark_backend::RenderMathFn;
 pub use egui_commonmark_backend::alerts::{Alert, AlertBundle};
@@ -212,6 +213,13 @@ impl<'f> CommonMarkViewer<'f> {
     /// ```
     pub fn render_math_fn(mut self, func: Option<&'f RenderMathFn<'f>>) -> Self {
         self.options.math_fn = func;
+        self
+    }
+
+    /// Select the syntax recognized when [`Self::render_math_fn`] is set.
+    /// Defaults to [`MathDelimiters::Dollar`].
+    pub fn math_delimiters(mut self, delimiters: MathDelimiters) -> Self {
+        self.options.math_delimiters = delimiters;
         self
     }
 

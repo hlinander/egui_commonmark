@@ -30,3 +30,14 @@ pub use misc::CommonMarkCache;
 pub type RenderMathFn<'f> = dyn Fn(&mut egui::Ui, &str, bool) + 'f;
 /// Takes [`egui::Ui`] and the html text to be rendered/used
 pub type RenderHtmlFn<'f> = dyn Fn(&mut egui::Ui, &str) + 'f;
+
+/// Delimiters recognized when a math renderer is configured.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum MathDelimiters {
+    /// `$...$` for inline math and `$$...$$` for display math.
+    #[default]
+    Dollar,
+    /// `\(...\)` for inline math; `\[...\]` and `$$...$$` for display math.
+    /// Single dollar signs remain literal.
+    MathJax,
+}

@@ -32,6 +32,23 @@ CommonMarkViewer::new().show(ui, &mut cache, markdown);
 ```
 
 
+## Math delimiters
+
+`render_math_fn` enables math rendering. Its default delimiters are `$...$`
+for inline math and `$$...$$` for display math. Select `MathDelimiters::MathJax`
+to use `\(...\)` for inline math and `\[...\]` or `$$...$$` for display math;
+single dollar signs then remain literal.
+
+```rust
+CommonMarkViewer::new()
+    .math_delimiters(MathDelimiters::MathJax)
+    .render_math_fn(Some(&render_math))
+    .show(ui, &mut cache, r"Price $3–$9; formula \(x^2\).");
+```
+
+Both `show` and `show_scrollable` use this setting. Delimiters are parsed in
+the original source, preserving source offsets for mutable widgets.
+
 ## Compile time evaluation of markdown
 
 If you want to embed markdown directly the binary then you can enable the `macros` feature.

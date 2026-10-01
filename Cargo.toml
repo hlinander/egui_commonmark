@@ -25,7 +25,7 @@ egui_commonmark_macros = { version = "0.22.0", path = "egui_commonmark_macros", 
 # To add features to documentation
 document-features = { version = "0.2" }
 
-pulldown-cmark = { version = "0.13", default-features = false }
+pulldown-cmark = { version = "0.13", git = "https://github.com/hlinander/pulldown-cmark", rev = "44da946a0a040660d6fcf5c3bc15210e979c0cdf", default-features = false }
 
 
 [patch.crates-io]

@@ -32,6 +32,7 @@ pub struct CommonMarkOptions<'f> {
     /// Whether to present a mutable ui for things like checkboxes
     pub mutable: bool,
     pub math_fn: Option<&'f crate::RenderMathFn<'f>>,
+    pub math_delimiters: crate::MathDelimiters,
     pub html_fn: Option<&'f crate::RenderHtmlFn<'f>>,
     /// Font family used for `**strong**` runs. When `None`, `RichText::strong()`
     /// is applied (color change only). When set, the strong run is rendered
@@ -61,6 +62,7 @@ impl std::fmt::Debug for CommonMarkOptions<'_> {
             )
             .field("alerts", &self.alerts)
             .field("mutable", &self.mutable)
+            .field("math_delimiters", &self.math_delimiters)
             .finish()
     }
 }
@@ -81,6 +83,7 @@ impl Default for CommonMarkOptions<'_> {
             alerts: AlertBundle::gfm(),
             mutable: false,
             math_fn: None,
+            math_delimiters: Default::default(),
             html_fn: None,
             strong_font_family: None,
         }

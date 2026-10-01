@@ -112,12 +112,16 @@ impl CommonMarkViewerInternal {
     }
 }
 
-fn parser_options_math(is_math_enabled: bool) -> pulldown_cmark::Options {
-    if is_math_enabled {
-        parser_options() | pulldown_cmark::Options::ENABLE_MATH
+fn parser_options_math(options: &CommonMarkOptions<'_>) -> pulldown_cmark::Options {
+    let math = if options.math_fn.is_none() {
+        pulldown_cmark::Options::empty()
     } else {
-        parser_options()
-    }
+        match options.math_delimiters {
+            crate::MathDelimiters::Dollar => pulldown_cmark::Options::ENABLE_MATH,
+            crate::MathDelimiters::MathJax => pulldown_cmark::Options::ENABLE_MATHJAX_MATH,
+        }
+    };
+    parser_options() | math
 }
 
 impl CommonMarkViewerInternal {
@@ -141,7 +145,7 @@ impl CommonMarkViewerInternal {
 
             let mut events = pulldown_cmark::Parser::new_ext(
                 text,
-                parser_options_math(options.math_fn.is_some()),
+                parser_options_math(options),
             )
             .into_offset_iter()
             .enumerate()
@@ -214,7 +218,7 @@ impl CommonMarkViewerInternal {
         };
 
         let events =
-            pulldown_cmark::Parser::new_ext(text, parser_options_math(options.math_fn.is_some()))
+            pulldown_cmark::Parser::new_ext(text, parser_options_math(options))
                 .into_offset_iter()
                 .collect::<Vec<_>>();
 
