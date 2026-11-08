@@ -161,3 +161,17 @@ fn many_columns_fit_a_narrow_pane() {
         assert!(rect.right() <= g.available.right());
     }
 }
+
+#[test]
+fn last_column_moves_to_the_edge_without_changing_cell_text_alignment() {
+    let g = render(
+        &egui::Context::default(),
+        &mut CommonMarkCache::default(),
+        "| Name | Count |\n| --- | --- |\n| Item | 7 |",
+        640.0,
+        true,
+    );
+    close(g.separator.right() - g.text("Count").right(), 8.0);
+    close(g.text("7").left(), g.text("Count").left());
+    assert!(g.text("7").right() < g.text("Count").right());
+}
