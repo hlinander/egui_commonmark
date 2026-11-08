@@ -980,28 +980,36 @@ impl CommonMarkViewerInternal {
                     )
                 }
 
-                let padding = base_padding + if options.table_full_width {
-                    (usable - col_w.iter().sum::<f32>()).max(0.0) / (2.0 * num_cols as f32)
+                let surplus = if options.table_full_width {
+                    (usable - col_w.iter().sum::<f32>()).max(0.0)
                 } else {
                     0.0
                 };
+                let inner_padding = surplus / (2.0 * num_cols.saturating_sub(1).max(1) as f32);
+                let padding = |column: usize| {
+                    egui::vec2(
+                        base_padding + if column > 0 { inner_padding } else { 0.0 },
+                        base_padding + if num_cols == 1 { surplus }
+                            else if column + 1 < num_cols { inner_padding } else { 0.0 },
+                    )
+                };
                 let content_width = col_w.iter().sum::<f32>()
-                    + 2.0 * padding * num_cols as f32 + total_spacing;
+                    + 2.0 * base_padding * num_cols as f32 + surplus + total_spacing;
 
                 // The outer cell reserves both insets; only the inner UI wraps text.
                 fn padded_cell(
                     ui: &mut Ui,
                     width: f32,
-                    padding: f32,
+                    padding: egui::Vec2,
                     content: impl FnOnce(&mut Ui),
                 ) {
                     ui.allocate_ui_with_layout(
-                        egui::vec2(width + 2.0 * padding, 0.0),
+                        egui::vec2(width + padding.x + padding.y, 0.0),
                         egui::Layout::top_down(egui::Align::Min),
                         |outer| {
-                            outer.set_width(width + 2.0 * padding);
+                            outer.set_width(width + padding.x + padding.y);
                             let rect = egui::Rect::from_min_size(
-                                outer.cursor().min + egui::vec2(padding, 0.0),
+                                outer.cursor().min + egui::vec2(padding.x, 0.0),
                                 egui::vec2(width, 0.0),
                             );
                             outer.scope_builder(
@@ -1028,7 +1036,7 @@ impl CommonMarkViewerInternal {
                         h_ui.spacing_mut().item_spacing.x = spacing_x;
                         for (c, col) in header.into_iter().take(num_cols).enumerate() {
                             let w = col_w[c];
-                            padded_cell(h_ui, w, padding, |cell_ui| {
+                            padded_cell(h_ui, w, padding(c), |cell_ui| {
                                     cell_ui.set_width(w);
                                     for (e, src_span) in col {
                                         if is_cell_delim(&e) {
@@ -1068,7 +1076,7 @@ impl CommonMarkViewerInternal {
                             h_ui.spacing_mut().item_spacing.x = spacing_x;
                             for (c, col) in row.into_iter().take(num_cols).enumerate() {
                                 let w = col_w[c];
-                                padded_cell(h_ui, w, padding, |cell_ui| {
+                                padded_cell(h_ui, w, padding(c), |cell_ui| {
                                         cell_ui.set_width(w);
                                         for (e, src_span) in col {
                                             if is_cell_delim(&e) {

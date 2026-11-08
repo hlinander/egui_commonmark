@@ -22,7 +22,7 @@ pub struct CommonMarkOptions<'f> {
     pub max_image_width: Option<usize>,
     pub show_alt_text_on_hover: bool,
     pub default_width: Option<usize>,
-    /// Fill tables with symmetric cell padding and an 8-point minimum inset.
+    /// Fill tables with evenly spaced columns and fixed 8-point outer insets.
     pub table_full_width: bool,
     #[cfg(feature = "better_syntax_highlighting")]
     pub theme_light: String,

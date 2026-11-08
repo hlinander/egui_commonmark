@@ -102,8 +102,8 @@ impl<'f> CommonMarkViewer<'f> {
         Self::default()
     }
 
-    /// Fill the available table width with equal left/right cell padding.
-    /// Cells retain an 8-point inset when their content needs wrapping.
+    /// Fill the available table width with equal spacing between columns.
+    /// Outer edges retain an 8-point inset; interior columns have symmetric padding.
     pub fn table_full_width(mut self, enabled: bool) -> Self {
         self.options.table_full_width = enabled;
         self

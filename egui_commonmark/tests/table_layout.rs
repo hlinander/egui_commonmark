@@ -79,22 +79,21 @@ fn close(actual: f32, expected: f32) {
 }
 
 #[test]
-fn short_tables_fill_width_with_symmetric_padding_and_aligned_rows() {
+fn outer_columns_meet_the_insets_and_interior_gaps_are_equal() {
     let ctx = egui::Context::default();
     let mut cache = CommonMarkCache::default();
     // Repeat the widest content in every row to expose the full column geometry.
-    let markdown =
-        "| Name | Description |\n| --- | --- |\n| Name | Description |\n| Name | Description |";
+    let markdown = "| Name | Description | Count |\n| --- | --- | --- |\n| Name | Description | Count |\n| Name | Description | Count |";
     for width in [240.0, 480.0, 900.0, 320.0, 900.0] {
         let g = render(&ctx, &mut cache, markdown, width, true);
         close(g.border.width(), g.available.width());
         let left_padding = g.text("Name").left() - g.separator.left();
-        let right_padding = g.separator.right() - g.text("Description").right();
-        assert!(left_padding >= 7.5, "left inset: {left_padding}");
+        let right_padding = g.separator.right() - g.text("Count").right();
+        close(left_padding, 8.0);
         close(left_padding, right_padding);
         close(
             g.text("Description").left() - g.text("Name").right(),
-            2.0 * left_padding + 8.0,
+            g.text("Count").left() - g.text("Description").right(),
         );
         for (text, rect) in &g.texts {
             close(rect.left(), g.text(text).left());
@@ -106,7 +105,7 @@ fn short_tables_fill_width_with_symmetric_padding_and_aligned_rows() {
 }
 
 #[test]
-fn one_column_table_centers_its_content_area() {
+fn one_column_table_fills_width_and_aligns_left() {
     let g = render(
         &egui::Context::default(),
         &mut CommonMarkCache::default(),
@@ -115,7 +114,7 @@ fn one_column_table_centers_its_content_area() {
         true,
     );
     close(g.border.width(), g.available.width());
-    close(g.text("Value").center().x, g.separator.center().x);
+    close(g.text("Value").left() - g.separator.left(), 8.0);
 }
 
 #[test]
