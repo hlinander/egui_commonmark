@@ -108,6 +108,12 @@ impl<'f> CommonMarkViewer<'f> {
         self
     }
 
+    /// Override the fill painted behind alternating table rows.
+    pub fn table_stripe_color(mut self, color: egui::Color32) -> Self {
+        self.options.table_stripe_color = Some(color);
+        self
+    }
+
     /// Fill the available table width with equal spacing between columns.
     /// Outer edges retain an 8-point inset; interior columns have symmetric padding.
     pub fn table_full_width(mut self, enabled: bool) -> Self {

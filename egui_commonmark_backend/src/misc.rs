@@ -26,6 +26,8 @@ pub struct CommonMarkOptions<'f> {
     pub table_full_width: bool,
     /// Optional table container styling; defaults to `egui::Frame::group`.
     pub table_frame: Option<egui::Frame>,
+    /// Alternating row fill; defaults to the UI's faint background color.
+    pub table_stripe_color: Option<egui::Color32>,
     #[cfg(feature = "better_syntax_highlighting")]
     pub theme_light: String,
     #[cfg(feature = "better_syntax_highlighting")]
@@ -55,7 +57,8 @@ impl std::fmt::Debug for CommonMarkOptions<'_> {
             .field("show_alt_text_on_hover", &self.show_alt_text_on_hover)
             .field("default_width", &self.default_width)
             .field("table_full_width", &self.table_full_width)
-            .field("table_frame", &self.table_frame);
+            .field("table_frame", &self.table_frame)
+            .field("table_stripe_color", &self.table_stripe_color);
 
         #[cfg(feature = "better_syntax_highlighting")]
         s.field("theme_light", &self.theme_light)
@@ -82,6 +85,7 @@ impl Default for CommonMarkOptions<'_> {
             default_width: None,
             table_full_width: false,
             table_frame: None,
+            table_stripe_color: None,
             #[cfg(feature = "better_syntax_highlighting")]
             theme_light: DEFAULT_THEME_LIGHT.to_owned(),
             #[cfg(feature = "better_syntax_highlighting")]

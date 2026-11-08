@@ -55,7 +55,7 @@ fn render(
     width: f32,
     fill: bool,
 ) -> Geometry {
-    render_with_frame(ctx, cache, markdown, width, fill, None)
+    render_with_frame(ctx, cache, markdown, width, fill, None, None)
 }
 
 fn render_with_frame(
@@ -65,6 +65,7 @@ fn render_with_frame(
     width: f32,
     fill: bool,
     table_frame: Option<egui::Frame>,
+    stripe_color: Option<egui::Color32>,
 ) -> Geometry {
     let mut geometry = Geometry::default();
     for _ in 0..2 {
@@ -80,6 +81,9 @@ fn render_with_frame(
                     let mut viewer = CommonMarkViewer::new().table_full_width(fill);
                     if let Some(frame) = table_frame {
                         viewer = viewer.table_frame(frame);
+                    }
+                    if let Some(color) = stripe_color {
+                        viewer = viewer.table_stripe_color(color);
                     }
                     viewer.show(ui, cache, markdown);
                 });
@@ -207,6 +211,7 @@ fn custom_frame_separates_the_table_with_fill_and_no_outer_stroke() {
             640.0,
             true,
             Some(egui::Frame::new().inner_margin(7).fill(color)),
+            None,
         );
         let table = g
             .rectangles
@@ -220,5 +225,34 @@ fn custom_frame_separates_the_table_with_fill_and_no_outer_stroke() {
         assert!(g.rectangles.iter().any(|rect| rect.fill != color
             && rect.rect.width() == g.separator.width()
             && rect.rect.height() < table.rect.height()));
+    }
+}
+
+#[test]
+fn stripe_override_changes_only_alternating_row_fills() {
+    let ctx = egui::Context::default();
+    let custom = egui::Color32::from_rgb(30, 33, 38);
+    for override_color in [None, Some(custom)] {
+        let expected = override_color.unwrap_or(ctx.style().visuals.faint_bg_color);
+        let g = render_with_frame(
+            &ctx,
+            &mut CommonMarkCache::default(),
+            "| Name | Count |\n| --- | --- |\n| First | 1 |\n| Second | 2 |\n| Third | 3 |\n| Fourth | 4 |",
+            640.0,
+            true,
+            None,
+            override_color,
+        );
+        let stripes: Vec<_> = g
+            .rectangles
+            .iter()
+            .filter(|rect| rect.fill == expected)
+            .collect();
+        assert_eq!(stripes.len(), 2);
+        for (stripe, text) in stripes.iter().zip(["Second", "Fourth"]) {
+            close(stripe.rect.left(), g.separator.left());
+            close(stripe.rect.right(), g.separator.right());
+            assert!(stripe.rect.contains_rect(g.text(text)));
+        }
     }
 }

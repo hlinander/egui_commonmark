@@ -1061,7 +1061,8 @@ impl CommonMarkViewerInternal {
                     });
                     v_ui.separator();
 
-                    let stripe_color = v_ui.visuals().faint_bg_color;
+                    let stripe_color = options.table_stripe_color
+                        .unwrap_or(v_ui.visuals().faint_bg_color);
                     for (row_idx, row) in rows.into_iter().enumerate() {
                         let row_start = v_ui.cursor().min;
                         // Reserve the stripe's paint slot *before* drawing cell
