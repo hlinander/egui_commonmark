@@ -469,7 +469,8 @@ impl CommonMarkViewerInternal {
             // inside a fixed-width child ui wraps text and reports the true
             // multi-line height up to the parent vertical layout.
             let _ = (id, max_width);
-            egui::Frame::group(ui.style()).show(ui, |ui| {
+            let frame = options.table_frame.unwrap_or_else(|| egui::Frame::group(ui.style()));
+            frame.show(ui, |ui| {
                 let Table { mut header, mut rows } = parse_table(events);
                 let num_cols = header.len().max(1);
 

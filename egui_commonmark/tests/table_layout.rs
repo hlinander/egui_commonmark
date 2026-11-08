@@ -7,6 +7,7 @@ struct Geometry {
     separator: Rect,
     texts: Vec<(String, Rect)>,
     stripes: Vec<Rect>,
+    rectangles: Vec<egui::epaint::RectShape>,
 }
 
 impl Default for Geometry {
@@ -17,12 +18,16 @@ impl Default for Geometry {
             separator: Rect::NOTHING,
             texts: Vec::new(),
             stripes: Vec::new(),
+            rectangles: Vec::new(),
         }
     }
 }
 
 impl Geometry {
     fn collect(&mut self, shape: &Shape) {
+        if let Shape::Rect(rect) = shape {
+            self.rectangles.push(rect.clone());
+        }
         match shape {
             Shape::Vec(shapes) => shapes.iter().for_each(|s| self.collect(s)),
             Shape::Rect(rect) if rect.stroke.width > 0.0 => self.border = rect.rect,
@@ -50,6 +55,17 @@ fn render(
     width: f32,
     fill: bool,
 ) -> Geometry {
+    render_with_frame(ctx, cache, markdown, width, fill, None)
+}
+
+fn render_with_frame(
+    ctx: &egui::Context,
+    cache: &mut CommonMarkCache,
+    markdown: &str,
+    width: f32,
+    fill: bool,
+    table_frame: Option<egui::Frame>,
+) -> Geometry {
     let mut geometry = Geometry::default();
     for _ in 0..2 {
         geometry = Geometry::default();
@@ -61,9 +77,11 @@ fn render(
             |ctx| {
                 egui::CentralPanel::default().show(ctx, |ui| {
                     geometry.available = ui.available_rect_before_wrap();
-                    CommonMarkViewer::new()
-                        .table_full_width(fill)
-                        .show(ui, cache, markdown);
+                    let mut viewer = CommonMarkViewer::new().table_full_width(fill);
+                    if let Some(frame) = table_frame {
+                        viewer = viewer.table_frame(frame);
+                    }
+                    viewer.show(ui, cache, markdown);
                 });
             },
         );
@@ -174,4 +192,33 @@ fn last_column_moves_to_the_edge_without_changing_cell_text_alignment() {
     close(g.separator.right() - g.text("Count").right(), 8.0);
     close(g.text("7").left(), g.text("Count").left());
     assert!(g.text("7").right() < g.text("Count").right());
+}
+
+#[test]
+fn custom_frame_separates_the_table_with_fill_and_no_outer_stroke() {
+    for color in [
+        egui::Color32::from_rgb(11, 14, 19),
+        egui::Color32::from_rgb(244, 247, 252),
+    ] {
+        let g = render_with_frame(
+            &egui::Context::default(),
+            &mut CommonMarkCache::default(),
+            "| Name | Count |\n| --- | --- |\n| First | 1 |\n| Second | 2 |",
+            640.0,
+            true,
+            Some(egui::Frame::new().inner_margin(7).fill(color)),
+        );
+        let table = g
+            .rectangles
+            .iter()
+            .find(|rect| rect.fill == color)
+            .expect("the requested table background must be painted");
+        assert_eq!(table.stroke, egui::Stroke::NONE);
+        close(table.rect.width(), g.available.width());
+        close(g.text("Name").left() - table.rect.left(), 15.0);
+        close(g.separator.width(), table.rect.width() - 14.0);
+        assert!(g.rectangles.iter().any(|rect| rect.fill != color
+            && rect.rect.width() == g.separator.width()
+            && rect.rect.height() < table.rect.height()));
+    }
 }

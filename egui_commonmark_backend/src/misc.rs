@@ -24,6 +24,8 @@ pub struct CommonMarkOptions<'f> {
     pub default_width: Option<usize>,
     /// Fill tables with evenly spaced columns and fixed 8-point outer insets.
     pub table_full_width: bool,
+    /// Optional table container styling; defaults to `egui::Frame::group`.
+    pub table_frame: Option<egui::Frame>,
     #[cfg(feature = "better_syntax_highlighting")]
     pub theme_light: String,
     #[cfg(feature = "better_syntax_highlighting")]
@@ -52,7 +54,8 @@ impl std::fmt::Debug for CommonMarkOptions<'_> {
             .field("max_image_width", &self.max_image_width)
             .field("show_alt_text_on_hover", &self.show_alt_text_on_hover)
             .field("default_width", &self.default_width)
-            .field("table_full_width", &self.table_full_width);
+            .field("table_full_width", &self.table_full_width)
+            .field("table_frame", &self.table_frame);
 
         #[cfg(feature = "better_syntax_highlighting")]
         s.field("theme_light", &self.theme_light)
@@ -78,6 +81,7 @@ impl Default for CommonMarkOptions<'_> {
             show_alt_text_on_hover: true,
             default_width: None,
             table_full_width: false,
+            table_frame: None,
             #[cfg(feature = "better_syntax_highlighting")]
             theme_light: DEFAULT_THEME_LIGHT.to_owned(),
             #[cfg(feature = "better_syntax_highlighting")]

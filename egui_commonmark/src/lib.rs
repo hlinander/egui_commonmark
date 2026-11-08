@@ -102,6 +102,12 @@ impl<'f> CommonMarkViewer<'f> {
         Self::default()
     }
 
+    /// Override the table container's fill, stroke, margins, and corner radius.
+    pub fn table_frame(mut self, frame: egui::Frame) -> Self {
+        self.options.table_frame = Some(frame);
+        self
+    }
+
     /// Fill the available table width with equal spacing between columns.
     /// Outer edges retain an 8-point inset; interior columns have symmetric padding.
     pub fn table_full_width(mut self, enabled: bool) -> Self {
