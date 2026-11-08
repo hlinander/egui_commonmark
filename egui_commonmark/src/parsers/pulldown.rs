@@ -534,7 +534,12 @@ impl CommonMarkViewerInternal {
                 let avail = ui.available_width();
                 let total_spacing = spacing_x * (num_cols.saturating_sub(1)) as f32;
                 let min_col_floor = 24.0_f32;
-                let usable = (avail - total_spacing).max(num_cols as f32 * min_col_floor);
+                let base_padding = if options.table_full_width { 8.0 } else { 0.0 };
+                let usable = if options.table_full_width {
+                    (avail - total_spacing - 2.0 * base_padding * num_cols as f32).max(1.0)
+                } else {
+                    (avail - total_spacing).max(num_cols as f32 * min_col_floor)
+                };
 
                 // Hash the table content to key the per-table measurement
                 // cache. Recomputing layout-job widths for every cell every
@@ -975,12 +980,40 @@ impl CommonMarkViewerInternal {
                     )
                 }
 
-                // Tight content width: sum of column widths plus the gaps
-                // between cells. Used to bound the table's vertical layout
-                // so the surrounding `Frame::group` and the in-table
-                // `separator` don't stretch to the parent's full width.
-                let content_width: f32 = col_w.iter().sum::<f32>()
-                    + spacing_x * (num_cols.saturating_sub(1)) as f32;
+                let padding = base_padding + if options.table_full_width {
+                    (usable - col_w.iter().sum::<f32>()).max(0.0) / (2.0 * num_cols as f32)
+                } else {
+                    0.0
+                };
+                let content_width = col_w.iter().sum::<f32>()
+                    + 2.0 * padding * num_cols as f32 + total_spacing;
+
+                // The outer cell reserves both insets; only the inner UI wraps text.
+                fn padded_cell(
+                    ui: &mut Ui,
+                    width: f32,
+                    padding: f32,
+                    content: impl FnOnce(&mut Ui),
+                ) {
+                    ui.allocate_ui_with_layout(
+                        egui::vec2(width + 2.0 * padding, 0.0),
+                        egui::Layout::top_down(egui::Align::Min),
+                        |outer| {
+                            outer.set_width(width + 2.0 * padding);
+                            let rect = egui::Rect::from_min_size(
+                                outer.cursor().min + egui::vec2(padding, 0.0),
+                                egui::vec2(width, 0.0),
+                            );
+                            outer.scope_builder(
+                                egui::UiBuilder::new().max_rect(rect).layout(
+                                    egui::Layout::left_to_right(egui::Align::Min)
+                                        .with_main_wrap(true),
+                                ),
+                                content,
+                            );
+                        },
+                    );
+                }
 
                 ui.allocate_ui_with_layout(
                     egui::vec2(content_width, 0.0),
@@ -995,11 +1028,7 @@ impl CommonMarkViewerInternal {
                         h_ui.spacing_mut().item_spacing.x = spacing_x;
                         for (c, col) in header.into_iter().take(num_cols).enumerate() {
                             let w = col_w[c];
-                            h_ui.allocate_ui_with_layout(
-                                egui::vec2(w, 0.0),
-                                egui::Layout::left_to_right(egui::Align::Min)
-                                    .with_main_wrap(true),
-                                |cell_ui| {
+                            padded_cell(h_ui, w, padding, |cell_ui| {
                                     cell_ui.set_width(w);
                                     for (e, src_span) in col {
                                         if is_cell_delim(&e) {
@@ -1039,11 +1068,7 @@ impl CommonMarkViewerInternal {
                             h_ui.spacing_mut().item_spacing.x = spacing_x;
                             for (c, col) in row.into_iter().take(num_cols).enumerate() {
                                 let w = col_w[c];
-                                h_ui.allocate_ui_with_layout(
-                                    egui::vec2(w, 0.0),
-                                    egui::Layout::left_to_right(egui::Align::Min)
-                                        .with_main_wrap(true),
-                                    |cell_ui| {
+                                padded_cell(h_ui, w, padding, |cell_ui| {
                                         cell_ui.set_width(w);
                                         for (e, src_span) in col {
                                             if is_cell_delim(&e) {

@@ -102,6 +102,13 @@ impl<'f> CommonMarkViewer<'f> {
         Self::default()
     }
 
+    /// Fill the available table width with equal left/right cell padding.
+    /// Cells retain an 8-point inset when their content needs wrapping.
+    pub fn table_full_width(mut self, enabled: bool) -> Self {
+        self.options.table_full_width = enabled;
+        self
+    }
+
     /// The amount of spaces a bullet point is indented. By default this is 4
     /// spaces.
     pub fn indentation_spaces(mut self, spaces: usize) -> Self {
